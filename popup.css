@@ -1,15 +1,11 @@
 :root {
   --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  
-  --status-changed: #059669; /* Green */
-  --status-unchanged: #94a3b8; /* Gray */
-  --status-unknown: #d97706; /* Yellow/Orange */
+  --bg-color: #ffffff;
+  --text-main: #000000;
+  --text-muted: #666666;
+  --border-color: #eeeeee;
+  --status-changed: #e1f5fe;
+  --status-text-changed: #0288d1;
 }
 
 * {
@@ -19,162 +15,115 @@
 }
 
 body {
-  width: 400px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+  width: 360px;
+  font-family: -apple-system, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
-  line-height: 1.5;
-  overflow-x: hidden;
+  padding: 0;
 }
 
 .container {
-  padding: 14px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 header {
-  border-bottom: 2px solid var(--primary);
-  padding-bottom: 8px;
+  margin-bottom: 20px;
 }
 
 header h1 {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--primary);
+  font-size: 20px;
+  margin-bottom: 5px;
 }
 
 .subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
-/* Summary Box */
 .summary-box {
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 12px;
-  border-radius: 8px;
+  background: #f0f7ff;
+  border-left: 4px solid var(--primary);
+  padding: 10px;
+  margin-bottom: 20px;
   font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.summary-box .label {
-  color: var(--primary);
-  display: block;
-  margin-bottom: 2px;
-}
-
-/* Sections */
 .section-title {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-top: 10px;
-  margin-bottom: 8px;
-  border-left: 3px solid var(--primary);
-  padding-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #888;
+  margin: 15px 0 10px 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
 }
 
-/* Field Items - Clean single row style */
+/* 一行一行，最穩定的寫法 */
 .field-item {
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  padding: 10px 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Force all groups to be vertical list */
-.field-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.field-info {
-  display: flex;
-  align-items: center; /* Label and value on same line or stacked? User said "one line" maybe? */
-  /* Actually, Labal / Value stacked is cleaner for small width. 
-     But let's try Label on left, Value on right if it fits. 
-     Given "直接一行一行", a classic List View is usually Label (Left) : Value (Right).
-  */
-  flex: 1;
-  min-width: 0;
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 12px;
+  margin-bottom: 15px;
+  display: block; /* 使用 block 確保一行一行 */
+  width: 100%;
 }
 
 .field-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 600;
-  width: 100px; /* Fixed width for labels to align values */
-  flex-shrink: 0;
+  font-size: 11px;
+  color: #999;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.field-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .field-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-all; /* 允許折行，防止跑版 */
+  flex: 1;
 }
 
 .field-status {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 700;
-  color: white;
-  margin-left: 12px;
+  padding: 2px 6px;
+  background: #eee;
+  border-radius: 3px;
   white-space: nowrap;
-  flex-shrink: 0;
+  color: #666;
 }
 
-/* Small adjustments for mini items to maintain unified look */
-.field-item.mini {
-  margin-bottom: 6px;
+/* 狀態顏色 */
+.status-changed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }
 
-.status-dot {
-  /* Simplified: use the same status pill as general fields for robustness */
-  display: none; 
+.status-unchanged {
+  background-color: #f5f5f5;
+  color: #9e9e9e;
 }
 
-/* Transform dots into pills for consistency and to avoid absolute position overlap */
-.field-item.mini .field-status {
-  display: inline-block;
+.status-unknown {
+  background-color: #fff3e0;
+  color: #ef6c00;
 }
 
-/* Status Colors */
-.status-changed { background-color: var(--status-changed); }
-.status-unchanged { background-color: var(--status-unchanged); }
-.status-unknown { background-color: var(--status-unknown); }
-.status-error { background-color: #ef4444; }
-
-/* dot classes kept for JS compatibility but styled as pills */
-.dot-changed { background-color: var(--status-changed); }
-.dot-unchanged { background-color: var(--status-unchanged); }
-.dot-unknown { background-color: var(--status-unknown); }
-
-/* Footer */
+/* Footer 單純化 */
 footer {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-color);
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
 }
 
 .timestamp {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #999;
+  margin-bottom: 15px;
   text-align: center;
-  margin-bottom: 12px;
 }
 
 .actions {
@@ -185,34 +134,24 @@ footer {
 .btn {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: bold;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease;
+  border-radius: 4px;
 }
 
 .btn.primary {
-  background-color: var(--primary);
+  background: var(--primary);
   color: white;
-}
-.btn.primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
 }
 
 .btn.secondary {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-}
-.btn.secondary:hover {
-  background-color: #e2e8f0;
+  background: #eee;
+  color: #333;
 }
 
 .loading {
   opacity: 0.5;
-  pointer-events: none;
 }
 
