@@ -1,12 +1,10 @@
 /**
  * Inject Script (MAIN world)
- * 終極偽裝與除錯模式
+ * 終極美化除錯版
  */
 (function() {
   const SCRIPT_NAME = '[VPN Spoofer]';
   const log = (msg, color = '#2563eb') => console.log(`%c${SCRIPT_NAME} ${msg}`, `color: ${color}; font-weight: bold;`);
-
-  log('🚀 注入成功，正在搜尋環境設定...', '#2563eb');
 
   const UA_PRESETS = {
     'Win32': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
@@ -22,12 +20,8 @@
     if (applied) return;
     try {
       const settings = JSON.parse(data);
-      if (!settings.enabled) {
-        log('偽裝模式已關閉', '#666');
-        return;
-      }
+      if (!settings.enabled) return;
 
-      log('⚙️ 偵測到設定，開始強制覆蓋系統參數...', '#d97706');
       const targetUa = UA_PRESETS[settings.platform] || UA_PRESETS['Win32'];
 
       // --- 1. 時區 ---
@@ -38,67 +32,66 @@
           res.timeZone = settings.timezone;
           return res;
         };
-        log(`時區已修正: ${settings.timezone}`);
       }
 
       // --- 2. 語言 ---
       if (settings.language) {
         Object.defineProperty(navigator, 'language', { value: settings.language, configurable: true });
         Object.defineProperty(navigator, 'languages', { value: [settings.language, settings.language.split('-')[0]], configurable: true });
-        log(`語言已修正: ${settings.language}`);
       }
 
       // --- 3. 平台與 User-Agent ---
       if (settings.platform) {
-        // 基本資訊
         Object.defineProperty(navigator, 'platform', { value: settings.platform, configurable: true });
         Object.defineProperty(navigator, 'userAgent', { value: targetUa, configurable: true });
         Object.defineProperty(navigator, 'appVersion', { value: targetUa.replace('Mozilla/', ''), configurable: true });
         Object.defineProperty(navigator, 'vendor', { value: 'Google Inc.', configurable: true });
         
-        // Client Hints (現代瀏覽器偵測重點)
         if (navigator.userAgentData) {
-          const isWindows = settings.platform === 'Win32';
+          let chPlatform = 'Windows';
+          if (settings.platform === 'MacIntel' || settings.platform === 'iPhone') chPlatform = settings.platform === 'iPhone' ? 'iOS' : 'macOS';
+          else if (settings.platform === 'Linux x86_64') chPlatform = 'Linux';
+          else if (settings.platform === 'Linux armv8l') chPlatform = 'Android';
+
+          const isMobile = chPlatform === 'iOS' || chPlatform === 'Android';
+
           const mockCH = {
             brands: [
               { brand: 'Google Chrome', version: '129' },
               { brand: 'Not=A?Brand', version: '8' },
               { brand: 'Chromium', version: '129' }
             ],
-            mobile: false,
-            platform: isWindows ? 'Windows' : 'macOS'
+            mobile: isMobile,
+            platform: chPlatform
           };
           Object.defineProperty(navigator, 'userAgentData', {
             get: () => ({
               ...mockCH,
               getHighEntropyValues: (hints) => Promise.resolve({
                 ...mockCH,
-                architecture: 'x86',
+                architecture: isMobile ? 'arm' : 'x86',
                 bitness: '64',
-                model: '',
-                platformVersion: isWindows ? '15.0.0' : '14.5.0',
+                model: isMobile ? (chPlatform === 'iOS' ? 'iPhone' : 'Pixel 8') : '',
+                platformVersion: isMobile ? '14.0.0' : '15.0.0',
                 uaFullVersion: '129.0.0.0',
                 fullVersionList: mockCH.brands
               })
             }),
             configurable: true
           });
-          log('User-Agent Client Hints 已修正');
         }
-        log(`平台已切換為: ${settings.platform}`);
       }
 
       // --- 4. 解析度 ---
       if (settings.screenWidth) {
-        const mockScreen = (prop, val) => Object.defineProperty(Screen.prototype, prop, { get: () => val, configurable: true });
-        mockScreen('width', settings.screenWidth);
-        mockScreen('height', settings.screenHeight);
-        mockScreen('availWidth', settings.screenWidth);
-        mockScreen('availHeight', settings.screenHeight);
+        const mockS = (p, v) => Object.defineProperty(Screen.prototype, p, { get: () => v, configurable: true });
+        mockS('width', settings.screenWidth);
+        mockS('height', settings.screenHeight);
+        mockS('availWidth', settings.screenWidth);
+        mockS('availHeight', settings.screenHeight);
         Object.defineProperty(window, 'innerWidth', { get: () => settings.screenWidth, configurable: true });
         Object.defineProperty(window, 'innerHeight', { get: () => settings.screenHeight, configurable: true });
         Object.defineProperty(window, 'devicePixelRatio', { get: () => settings.devicePixelRatio || 2, configurable: true });
-        log('解析度已修正');
       }
 
       // --- 5. WebGL ---
@@ -116,24 +109,102 @@
         };
         if (window.WebGLRenderingContext) spoofGL(WebGLRenderingContext.prototype);
         if (window.WebGL2RenderingContext) spoofGL(WebGL2RenderingContext.prototype);
-        log('WebGL 渲染器已修正');
       }
 
       applied = true;
-      log('✅ 全系統偽裝指令執行完畢！', '#059669');
-      
-      // 在畫面上方顯示一個小小的除錯標籤
-      const div = document.createElement('div');
-      div.style = 'position:fixed;top:0;right:0;background:rgba(37,99,235,0.9);color:white;padding:4px 8px;font-size:10px;z-index:999999;pointer-events:none;border-bottom-left-radius:8px;';
-      div.innerText = '🛡️ VPN Spoofer Active: ' + settings.platform;
-      document.body ? document.body.appendChild(div) : window.addEventListener('DOMContentLoaded', () => document.body.appendChild(div));
+      showModernBadge(settings.platform, settings.timezone);
 
     } catch (e) {
-      log('❌ 套用過程出錯: ' + e.message, '#ef4444');
+      log('❌ 套用失敗: ' + e.message, '#ef4444');
     }
   }
 
-  // 強力循環監聽直到抓到資料
+  function showModernBadge(platform, timezone) {
+    const badge = document.createElement('div');
+    badge.id = 'vpn-spoof-badge';
+    badge.innerHTML = `
+      <div class="v-icon">🛡️</div>
+      <div class="v-text">
+        <span class="v-label">VPN Spoof Active</span>
+        <span class="v-sub">${platform} • ${timezone || 'Global'}</span>
+      </div>
+    `;
+    const style = document.createElement('style');
+    style.innerHTML = `
+      #vpn-spoof-badge {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2147483647;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        cursor: default;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: auto;
+      }
+      #vpn-spoof-badge:hover {
+        transform: scale(1.02);
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(37, 99, 235, 0.5);
+      }
+      #vpn-spoof-badge .v-icon {
+        font-size: 20px;
+        filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.6));
+      }
+      #vpn-spoof-badge .v-text {
+        display: flex;
+        flex-direction: column;
+      }
+      #vpn-spoof-badge .v-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #3b82f6;
+      }
+      #vpn-spoof-badge .v-sub {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(badge);
+    
+    // Animation
+    requestAnimationFrame(() => {
+      badge.style.opacity = '1';
+      badge.style.transform = 'translateY(0)';
+    });
+
+    // Auto-hide but interactive
+    setTimeout(() => {
+      if (badge && !badge.matches(':hover')) {
+        badge.style.opacity = '0.3';
+        badge.style.transform = 'translateX(10px) scale(0.9)';
+      }
+    }, 5000);
+    
+    badge.addEventListener('mouseenter', () => {
+      badge.style.opacity = '1';
+      badge.style.transform = 'translateY(0) scale(1.02)';
+    });
+  }
+
   let count = 0;
   const interval = setInterval(() => {
     count++;
@@ -142,9 +213,6 @@
       doSpoof(data);
       clearInterval(interval);
     }
-    if (count > 200) { // 等 2 秒
-      clearInterval(interval);
-      if (!applied) log('⚠️ 等候超時，未偵測到 Bridge 資料', '#ef4444');
-    }
+    if (count > 200) clearInterval(interval);
   }, 10);
 })();
