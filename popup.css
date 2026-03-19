@@ -158,7 +158,7 @@ header h1 {
   color: var(--text-muted);
 }
 
-.form-item select {
+.form-item select, .form-item input {
   padding: 4px;
   font-size: 12px;
   border: 1px solid #ddd;

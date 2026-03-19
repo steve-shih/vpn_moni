@@ -23,7 +23,8 @@
     "storage",
     "scripting",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback"
+    "declarativeNetRequestFeedback",
+    "proxy"
   ],
   "content_scripts": [
     {

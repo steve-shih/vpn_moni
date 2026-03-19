@@ -27,6 +27,10 @@ const Popup = {
     document.getElementById('sel-webgl').addEventListener('change', () => this.saveSpoofSettings());
     document.getElementById('sel-resolution').addEventListener('change', () => this.saveSpoofSettings());
     document.getElementById('btn-sync-ip').addEventListener('click', () => this.syncTimezoneToIp());
+
+    // Proxy events
+    document.getElementById('btn-save-proxy').addEventListener('click', () => this.saveSpoofSettings());
+    document.getElementById('chk-proxy-enabled').addEventListener('change', () => this.saveSpoofSettings());
   },
 
   /**
@@ -156,8 +160,12 @@ const Popup = {
       language: 'en-US',
       platform: 'Win32',
       webglRenderer: 'Intel Iris OpenGL Engine',
-      resolution: '1920,1080,1',
-      timezone: ''
+      resolution: '1512,982,2',
+      timezone: '',
+      proxyEnabled: false,
+      proxyHost: '',
+      proxyPort: '',
+      proxyScheme: 'http'
     };
 
     document.getElementById('chk-spoof-enabled').checked = settings.enabled;
@@ -166,16 +174,23 @@ const Popup = {
     document.getElementById('sel-webgl').value = settings.webglRenderer;
     document.getElementById('sel-resolution').value = settings.resolution;
     this.spoofTimezone = settings.timezone;
+
+    // Proxy
+    document.getElementById('chk-proxy-enabled').checked = settings.proxyEnabled;
+    document.getElementById('txt-proxy-host').value = settings.proxyHost || '';
+    document.getElementById('num-proxy-port').value = settings.proxyPort || '';
+    document.getElementById('sel-proxy-scheme').value = settings.proxyScheme || 'http';
   },
 
   /**
-   * 儲存偽裝設定
+   * 儲存偽裝與 Proxy 設定
    */
   async saveSpoofSettings() {
     const resString = document.getElementById('sel-resolution').value;
     const [w, h, dpr] = resString.split(',');
     
     const settings = {
+      // Spoofing
       enabled: document.getElementById('chk-spoof-enabled').checked,
       language: document.getElementById('sel-lang').value,
       platform: document.getElementById('sel-platform').value,
@@ -184,14 +199,19 @@ const Popup = {
       screenWidth: parseInt(w),
       screenHeight: parseInt(h),
       devicePixelRatio: parseFloat(dpr),
-      timezone: this.spoofTimezone || ''
+      timezone: this.spoofTimezone || '',
+
+      // Proxy
+      proxyEnabled: document.getElementById('chk-proxy-enabled').checked,
+      proxyHost: document.getElementById('txt-proxy-host').value.trim(),
+      proxyPort: document.getElementById('num-proxy-port').value,
+      proxyScheme: document.getElementById('sel-proxy-scheme').value
     };
 
     await chrome.storage.local.set({ spoofSettings: settings });
     
-    // 如果開啟偽裝，提醒使用者重新載入網頁
-    if (settings.enabled) {
-      console.log('Spoofing settings saved and enabled.');
+    if (settings.enabled || settings.proxyEnabled) {
+      console.log('Settings saved and active.');
     }
   },
 

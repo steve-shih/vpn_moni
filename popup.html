@@ -128,6 +128,37 @@
       </div>
     </div>
 
+    <div class="section-title">代理伺服器設定 (Proxy / IP 修改)</div>
+    <div class="spoof-settings">
+      <div class="form-row">
+        <label class="switch-label">
+          <span>開啟 Proxy 代理</span>
+          <input type="checkbox" id="chk-proxy-enabled">
+        </label>
+      </div>
+      <div class="form-grid">
+        <div class="form-item" style="grid-column: span 2;">
+          <label>代理主機 (IP 或 Domain)</label>
+          <input type="text" id="txt-proxy-host" placeholder="例如: 1.2.3.4">
+        </div>
+        <div class="form-item">
+          <label>通訊協定</label>
+          <select id="sel-proxy-scheme">
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+            <option value="socks5">SOCKS5</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>連接埠 (Port)</label>
+          <input type="number" id="num-proxy-port" placeholder="8080">
+        </div>
+      </div>
+      <div class="form-row mt-10">
+        <button id="btn-save-proxy" class="btn primary mini-btn">儲存並套用 Proxy</button>
+      </div>
+    </div>
+
     <footer>
       <div class="timestamp">
         檢查時間：<span id="check-time">-</span>
