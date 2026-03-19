@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPN 差異檢查器</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>VPN 差異檢查器</h1>
+      <p class="subtitle">讀取目前環境資訊並與基準值進行比對</p>
+    </header>
+
+    <div id="summary-section" class="summary-box">
+      <span class="label">目前判定：</span>
+      <span id="summary-text">載入中...</span>
+    </div>
+
+    <main id="details-section">
+      <div class="section-title">網路層</div>
+      <div class="field-item" id="field-publicIp">
+        <div class="field-info">
+          <span class="field-label">公網 IP</span>
+          <span class="field-value" id="val-publicIp">-</span>
+        </div>
+        <div class="field-status" id="status-publicIp">取得中</div>
+      </div>
+      <div class="field-item" id="field-geo">
+        <div class="field-info">
+          <span class="field-label">地區 / ISP</span>
+          <span class="field-value" id="val-geo">-</span>
+        </div>
+        <div class="field-status" id="status-geo">-</span>
+      </div>
+
+      <div class="section-title">瀏覽器層</div>
+      <div class="field-group">
+        <div class="field-item mini" id="field-timezone">
+          <span class="field-label">時區</span>
+          <span class="field-value" id="val-timezone">-</span>
+          <span class="status-dot" id="dot-timezone"></span>
+        </div>
+        <div class="field-item mini" id="field-language">
+          <span class="field-label">語言</span>
+          <span class="field-value" id="val-language">-</span>
+          <span class="status-dot" id="dot-language"></span>
+        </div>
+        <div class="field-item mini" id="field-platform">
+          <span class="field-label">平台</span>
+          <span class="field-value" id="val-platform">-</span>
+          <span class="status-dot" id="dot-platform"></span>
+        </div>
+      </div>
+
+      <div class="section-title">硬體與圖形</div>
+      <div class="field-item" id="field-webgl">
+        <div class="field-info">
+          <span class="field-label">WebGL Renderer</span>
+          <span class="field-value" id="val-webgl">-</span>
+        </div>
+        <div class="field-status" id="status-webgl">-</span>
+      </div>
+      <div class="field-item mini" id="field-screen">
+        <span class="field-label">螢幕解析度 / DPR</span>
+        <span class="field-value" id="val-screen">-</span>
+        <span class="status-dot" id="dot-screen"></span>
+      </div>
+    </main>
+
+    <footer>
+      <div class="timestamp">
+        檢查時間：<span id="check-time">-</span>
+      </div>
+      <div class="actions">
+        <button id="btn-refresh" class="btn secondary">重新檢查</button>
+        <button id="btn-set-baseline" class="btn primary">設為目前基準</button>
+      </div>
+    </footer>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
