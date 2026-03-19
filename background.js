@@ -1,11 +1,11 @@
 /**
  * Background Service Worker
- * 管理腳本注入與標頭修改 (DNR)
+ * 負責全域規則管理器
  */
 
 const SCRIPT_ID = 'vpn-spoof-script';
 
-// User-Agent 庫
+// UA 字串對照表
 const UA_PRESETS = {
   'Win32': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
   'MacIntel': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
@@ -13,16 +13,15 @@ const UA_PRESETS = {
 };
 
 /**
- * 更新所有偽裝設定 (包含腳本註冊與標頭修改)
+ * 更新偽裝設定
  */
 async function updateSpoofing() {
-  const result = await chrome.storage.local.get(['spoofSettings']);
-  const settings = result.spoofSettings;
+  const settings = (await chrome.storage.local.get(['spoofSettings'])).spoofSettings;
   const isEnabled = settings?.enabled || false;
 
-  console.log('UpdateSpoofing:', isEnabled ? 'Enabled' : 'Disabled');
+  console.log('[Background] 更新偽裝狀態:', isEnabled ? '開啟' : '關閉');
 
-  // 1. 管理腳本注入 (MAIN world)
+  // 1. 處理腳本注入
   try {
     const registered = await chrome.scripting.getRegisteredContentScripts();
     if (registered.some(s => s.id === SCRIPT_ID)) {
@@ -34,21 +33,21 @@ async function updateSpoofing() {
         runAt: 'document_start', world: 'MAIN'
       }]);
     }
-  } catch (err) { console.error('Scripting failed:', err); }
+  } catch (e) { console.error('Scripting Error:', e); }
 
-  // 2. 管理標頭修改 (Declarative Net Request)
-  await updateDnrRules(settings);
+  // 2. 處理 DNR 規則 (標頭修改)
+  await applyDnrRules(settings);
 }
 
 /**
- * 利用 DNR 規則修改 Accept-Language 與 User-Agent 標頭
+ * 套用標頭攔截規則
  */
-async function updateDnrRules(settings) {
+async function applyDnrRules(settings) {
   const isEnabled = settings?.enabled || false;
   
-  // 清除舊規則
+  // 清空現有動態規則
   const oldRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const oldRuleIds = oldRules.map(r => r.id);
+  const removeIds = oldRules.map(r => r.id);
   
   const addRules = [];
   if (isEnabled) {
@@ -58,35 +57,35 @@ async function updateDnrRules(settings) {
 
     addRules.push({
       id: 1,
-      priority: 1,
+      priority: 100, // 提高優先權
       action: {
         type: 'modifyHeaders',
         requestHeaders: [
-          { header: 'user-agent', operation: 'set', value: targetUa },
-          { header: 'accept-language', operation: 'set', value: `${targetLang},${targetLang.split('-')[0]};q=0.9` },
-          { header: 'sec-ch-ua', operation: 'set', value: isWindows ? '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' : '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' },
-          { header: 'sec-ch-ua-mobile', operation: 'set', value: '?0' },
-          { header: 'sec-ch-ua-platform', operation: 'set', value: isWindows ? '"Windows"' : '"macOS"' }
+          { header: 'User-Agent', operation: 'set', value: targetUa },
+          { header: 'Accept-Language', operation: 'set', value: `${targetLang},${targetLang.split('-')[0]};q=0.9` },
+          { header: 'Sec-CH-UA', operation: 'set', value: isWindows ? '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' : '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' },
+          { header: 'Sec-CH-UA-Mobile', operation: 'set', value: '?0' },
+          { header: 'Sec-CH-UA-Platform', operation: 'set', value: isWindows ? '"Windows"' : '"macOS"' }
         ]
       },
-      condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest'] }
+      condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest', 'ping'] }
     });
   }
 
   try {
     await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: oldRuleIds,
+      removeRuleIds: removeIds,
       addRules: addRules
     });
-    console.log('DNR Rules updated:', addRules.length > 0 ? 'Applied' : 'Cleared');
-  } catch (err) {
-    console.error('DNR Rules update failed:', err);
+    console.log('[Background] DNR 規則已成功套用，數量:', addRules.length);
+  } catch (e) {
+    console.error('DNR Error:', e);
   }
 }
 
-// 監控儲存變化
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.spoofSettings) updateSpoofing();
+// 監聽
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.spoofSettings) updateSpoofing();
 });
 
 chrome.runtime.onInstalled.addListener(() => updateSpoofing());
