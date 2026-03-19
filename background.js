@@ -55,19 +55,27 @@ async function applyDnrRules(settings) {
   if (isEnabled) {
     const targetUa = UA_PRESETS[settings.platform] || UA_PRESETS['Win32'];
     const targetLang = settings.language || 'en-US';
-    const isWindows = settings.platform === 'Win32';
+    
+    // 依據平台動態決定 Sec-CH-UA-Platform 標頭
+    let chPlatform = '"Windows"';
+    if (settings.platform === 'MacIntel' || settings.platform === 'iPhone') chPlatform = settings.platform === 'iPhone' ? '"iOS"' : '"macOS"';
+    else if (settings.platform === 'Linux x86_64') chPlatform = '"Linux"';
+    else if (settings.platform === 'Linux armv8l') chPlatform = '"Android"';
+    else if (settings.platform === 'Win32') chPlatform = '"Windows"';
+
+    const isMobile = settings.platform === 'iPhone' || settings.platform === 'Linux armv8l';
 
     addRules.push({
       id: 1,
-      priority: 100, // 提高優先權
+      priority: 100,
       action: {
         type: 'modifyHeaders',
         requestHeaders: [
           { header: 'User-Agent', operation: 'set', value: targetUa },
           { header: 'Accept-Language', operation: 'set', value: `${targetLang},${targetLang.split('-')[0]};q=0.9` },
-          { header: 'Sec-CH-UA', operation: 'set', value: isWindows ? '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' : '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' },
-          { header: 'Sec-CH-UA-Mobile', operation: 'set', value: '?0' },
-          { header: 'Sec-CH-UA-Platform', operation: 'set', value: isWindows ? '"Windows"' : '"macOS"' }
+          { header: 'Sec-CH-UA', operation: 'set', value: isMobile ? '"Apple iPhone";v="17", "Chromium";v="129", "Not=A?Brand";v="8"' : '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' },
+          { header: 'Sec-CH-UA-Mobile', operation: 'set', value: isMobile ? '?1' : '?0' },
+          { header: 'Sec-CH-UA-Platform', operation: 'set', value: chPlatform }
         ]
       },
       condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest', 'ping'] }
