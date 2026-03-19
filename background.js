@@ -54,6 +54,7 @@ async function updateDnrRules(settings) {
   if (isEnabled) {
     const targetUa = UA_PRESETS[settings.platform] || UA_PRESETS['Win32'];
     const targetLang = settings.language || 'en-US';
+    const isWindows = settings.platform === 'Win32';
 
     addRules.push({
       id: 1,
@@ -62,7 +63,10 @@ async function updateDnrRules(settings) {
         type: 'modifyHeaders',
         requestHeaders: [
           { header: 'user-agent', operation: 'set', value: targetUa },
-          { header: 'accept-language', operation: 'set', value: `${targetLang},${targetLang.split('-')[0]};q=0.9` }
+          { header: 'accept-language', operation: 'set', value: `${targetLang},${targetLang.split('-')[0]};q=0.9` },
+          { header: 'sec-ch-ua', operation: 'set', value: isWindows ? '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' : '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' },
+          { header: 'sec-ch-ua-mobile', operation: 'set', value: '?0' },
+          { header: 'sec-ch-ua-platform', operation: 'set', value: isWindows ? '"Windows"' : '"macOS"' }
         ]
       },
       condition: { urlFilter: '*', resourceTypes: ['main_frame', 'sub_frame', 'script', 'xmlhttprequest'] }

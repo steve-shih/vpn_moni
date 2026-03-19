@@ -22,7 +22,8 @@
   "permissions": [
     "storage",
     "scripting",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback"
   ],
   "content_scripts": [
     {
@@ -32,7 +33,6 @@
     }
   ],
   "host_permissions": [
-    "https://api.ipify.org/*",
-    "https://ipinfo.io/*"
+    "<all_urls>"
   ]
 }

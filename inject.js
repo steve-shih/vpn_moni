@@ -44,8 +44,35 @@
         Object.defineProperty(navigator, 'platform', { get: () => settings.platform, configurable: true });
         Object.defineProperty(navigator, 'userAgent', { get: () => targetUa, configurable: true });
         Object.defineProperty(navigator, 'appVersion', { get: () => targetUa.replace('Mozilla/', ''), configurable: true });
-        // 選項：偽裝為非 Mac 廠商
         Object.defineProperty(navigator, 'vendor', { get: () => 'Google Inc.', configurable: true });
+
+        // 3.1 偽裝 User-Agent Client Hints (UA-CH)
+        if (navigator.userAgentData) {
+          const isWindows = settings.platform === 'Win32';
+          const mockData = {
+            brands: [
+              { brand: 'Google Chrome', version: '129' },
+              { brand: 'Not=A?Brand', version: '8' },
+              { brand: 'Chromium', version: '129' }
+            ],
+            mobile: false,
+            platform: isWindows ? 'Windows' : 'macOS'
+          };
+          Object.defineProperty(navigator, 'userAgentData', {
+            get: () => ({
+              ...mockData,
+              getHighEntropyValues: (hints) => Promise.resolve({
+                ...mockData,
+                architecture: 'x86',
+                bitness: '64',
+                model: '',
+                platformVersion: isWindows ? '15.0.0' : '14.5.0',
+                uaFullVersion: '129.0.0.0',
+                fullVersionList: mockData.brands
+              })
+            })
+          });
+        }
       }
 
       // 4. 解析度
