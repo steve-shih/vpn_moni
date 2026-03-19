@@ -1,10 +1,15 @@
 /**
  * Inject Script (MAIN world)
- * 核心：強力攔截機制
+ * 深度覆蓋 JavaScript 中的環境資訊
  */
 (function() {
-  // 立即輸出 Log，讓使用者在 console 看到腳本有執行
   console.log('%c[VPN Spoofer] 🛡️ 注入成功，正在等待環境參數...', 'color: #2563eb; font-weight: bold;');
+
+  const UA_PRESETS = {
+    'Win32': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'MacIntel': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Linux x86_64': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+  };
 
   let spoofed = false;
 
@@ -16,6 +21,8 @@
 
       console.log('[VPN Spoofer] ⚙️ 套用設定:', settings);
 
+      const targetUa = UA_PRESETS[settings.platform] || UA_PRESETS['Win32'];
+
       // 1. 時區
       if (settings.timezone) {
         const originalResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
@@ -26,15 +33,19 @@
         };
       }
 
-      // 2. 語言
+      // 2. 語言 (JS 端)
       if (settings.language) {
         Object.defineProperty(navigator, 'language', { get: () => settings.language, configurable: true });
         Object.defineProperty(navigator, 'languages', { get: () => [settings.language, settings.language.split('-')[0]], configurable: true });
       }
 
-      // 3. 平台
+      // 3. 平台與 User-Agent (JS 端)
       if (settings.platform) {
         Object.defineProperty(navigator, 'platform', { get: () => settings.platform, configurable: true });
+        Object.defineProperty(navigator, 'userAgent', { get: () => targetUa, configurable: true });
+        Object.defineProperty(navigator, 'appVersion', { get: () => targetUa.replace('Mozilla/', ''), configurable: true });
+        // 選項：偽裝為非 Mac 廠商
+        Object.defineProperty(navigator, 'vendor', { get: () => 'Google Inc.', configurable: true });
       }
 
       // 4. 解析度
@@ -65,13 +76,12 @@
       }
 
       spoofed = true;
-      console.log('%c[VPN Spoofer] ✅ 環境校正完成！', 'color: #059669; font-weight: bold;');
+      console.log('%c[VPN Spoofer] ✅ 環境校正完成 (已包含 Windows/UA/Header 偽裝)！', 'color: #059669; font-weight: bold;');
     } catch (e) {
       console.error('[VPN Spoofer] ❌ 套用失敗:', e);
     }
   }
 
-  // 持續檢查是否有資料傳入 (透過 dataset)
   const timer = setInterval(() => {
     const data = document.documentElement.dataset.vpnSpoof;
     if (data) {
@@ -79,7 +89,5 @@
       clearInterval(timer);
     }
   }, 10);
-
-  // 1 秒後如果還是沒資料就放棄
   setTimeout(() => clearInterval(timer), 1000);
 })();

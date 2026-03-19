@@ -21,7 +21,8 @@
   },
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "declarativeNetRequest"
   ],
   "content_scripts": [
     {
