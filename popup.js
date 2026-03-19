@@ -81,15 +81,15 @@ const Popup = {
                      (results.country === 'unknown' ? 'unknown' : 'unchanged');
     this.updateField('geo', geoText, geoStatus);
 
-    this.updateMiniField('timezone', data.timezone, results.timezone);
-    this.updateMiniField('language', data.language, results.language);
-    this.updateMiniField('platform', data.platform, results.platform);
+    this.updateField('timezone', data.timezone, results.timezone);
+    this.updateField('language', data.language, results.language);
+    this.updateField('platform', data.platform, results.platform);
     
     this.updateField('webgl', data.webglRenderer, results.webglRenderer);
     
     const screenText = `${data.screenWidth}x${data.screenHeight} @ ${data.devicePixelRatio}x`;
     const screenStatus = (results.screenWidth === 'changed' || results.screenHeight === 'changed' || results.devicePixelRatio === 'changed') ? 'changed' : 'unchanged';
-    this.updateMiniField('screen', screenText, screenStatus);
+    this.updateField('screen', screenText, screenStatus);
 
     // 時間
     const checkTime = new Date(data.checkedAt);
@@ -97,7 +97,7 @@ const Popup = {
   },
 
   /**
-   * 更新一般欄位 (顯示狀態標籤)
+   * 更新欄位 (顯示狀態標籤)
    */
   updateField(id, value, status) {
     const valEl = document.getElementById(`val-${id}`);
@@ -107,19 +107,7 @@ const Popup = {
     if (statusEl) {
       statusEl.textContent = this.getStatusText(status);
       statusEl.className = `field-status status-${status}`;
-    }
-  },
-
-  /**
-   * 更新迷你欄位 (顯示狀態圓點)
-   */
-  updateMiniField(id, value, status) {
-    const valEl = document.getElementById(`val-${id}`);
-    const dotEl = document.getElementById(`dot-${id}`);
-    
-    if (valEl) valEl.textContent = value;
-    if (dotEl) {
-      dotEl.className = `status-dot dot-${status}`;
+      statusEl.style.display = 'inline-block';
     }
   },
 

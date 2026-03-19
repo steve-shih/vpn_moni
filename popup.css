@@ -19,32 +19,30 @@
 }
 
 body {
-  width: 380px; /* Sizable but stable */
+  width: 400px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
-  line-height: 1.4;
-  overflow: hidden; /* Prevent popup scrollbars if possible */
+  line-height: 1.5;
+  overflow-x: hidden;
 }
 
 .container {
-  padding: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 8px;
 }
 
 header h1 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   color: var(--primary);
-  letter-spacing: -0.01em;
 }
 
 .subtitle {
@@ -56,149 +54,140 @@ header h1 {
 .summary-box {
   background-color: #eff6ff;
   border: 1px solid #bfdbfe;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .summary-box .label {
   color: var(--primary);
-  margin-right: 4px;
+  display: block;
+  margin-bottom: 2px;
 }
 
 /* Sections */
 .section-title {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--text-muted);
+  margin-top: 8px;
   margin-bottom: 6px;
-  margin-top: 10px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 2px;
-  font-weight: 700;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-/* Field Items */
+/* Field Items - Unified robust style */
 .field-item {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 1px 0 rgb(0 0 0 / 0.03);
+  min-height: 52px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Single column list for everything to prevent overlaps */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .field-info {
   display: flex;
   flex-direction: column;
-  gap: 0px;
   flex: 1;
-  min-width: 0; /* Critical for ellipsis/shrink */
+  min-width: 0; /* Ensures children can truncate */
 }
 
 .field-label {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
-  font-weight: 500;
+  margin-bottom: 2px;
 }
 
 .field-value {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  white-space: nowrap;
+  color: var(--text-main);
   overflow: hidden;
-  text-overflow: ellipsis; /* Prevent overflow breakage */
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .field-status {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 10px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
   font-weight: 700;
+  color: white;
+  margin-left: 12px;
   white-space: nowrap;
-  margin-left: 8px;
+  flex-shrink: 0;
 }
 
-/* Mini fields for grid-like layout */
-.field-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
+/* Small adjustments for mini items to maintain unified look */
 .field-item.mini {
-  flex-direction: column;
-  align-items: flex-start;
-  position: relative;
-  margin-bottom: 0;
-}
-
-.field-item.mini .field-value {
-  width: 100%;
+  margin-bottom: 6px;
 }
 
 .status-dot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  /* Simplified: use the same status pill as general fields for robustness */
+  display: none; 
+}
+
+/* Transform dots into pills for consistency and to avoid absolute position overlap */
+.field-item.mini .field-status {
+  display: inline-block;
 }
 
 /* Status Colors */
-.status-changed {
-  color: white;
-  background-color: var(--status-changed);
-}
-.status-unchanged {
-  color: white;
-  background-color: var(--status-unchanged);
-}
-.status-unknown {
-  color: white;
-  background-color: var(--status-unknown);
-}
+.status-changed { background-color: var(--status-changed); }
+.status-unchanged { background-color: var(--status-unchanged); }
+.status-unknown { background-color: var(--status-unknown); }
+.status-error { background-color: #ef4444; }
 
+/* dot classes kept for JS compatibility but styled as pills */
 .dot-changed { background-color: var(--status-changed); }
 .dot-unchanged { background-color: var(--status-unchanged); }
 .dot-unknown { background-color: var(--status-unknown); }
 
 /* Footer */
 footer {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .timestamp {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   text-align: center;
+  margin-bottom: 12px;
 }
 
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 10px;
 }
 
 .btn {
   flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
 }
 
 .btn.primary {
@@ -207,6 +196,7 @@ footer {
 }
 .btn.primary:hover {
   background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 .btn.secondary {
@@ -219,7 +209,7 @@ footer {
 }
 
 .loading {
-  opacity: 0.6;
+  opacity: 0.5;
   pointer-events: none;
 }
 
