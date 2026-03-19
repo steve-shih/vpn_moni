@@ -219,6 +219,8 @@ const Popup = {
     if (renderer.includes('Intel')) return 'Google Inc. (Intel)';
     if (renderer.includes('NVIDIA')) return 'Google Inc. (NVIDIA)';
     if (renderer.includes('Apple')) return 'Apple Inc.';
+    if (renderer.includes('AMD') || renderer.includes('Radeon')) return 'Google Inc. (ATI Technologies Inc.)';
+    if (renderer.includes('Adreno')) return 'Qualcomm';
     return 'Unknown';
   },
 
