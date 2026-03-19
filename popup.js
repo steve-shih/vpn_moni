@@ -12,12 +12,21 @@ const Popup = {
 
   async init() {
     this.bindEvents();
+    await this.loadSpoofSettings();
     await this.refresh();
   },
 
   bindEvents() {
     document.getElementById('btn-refresh').addEventListener('click', () => this.refresh());
     document.getElementById('btn-set-baseline').addEventListener('click', () => this.saveBaseline());
+    
+    // Spoofing events
+    document.getElementById('chk-spoof-enabled').addEventListener('change', (e) => this.saveSpoofSettings());
+    document.getElementById('sel-lang').addEventListener('change', () => this.saveSpoofSettings());
+    document.getElementById('sel-platform').addEventListener('change', () => this.saveSpoofSettings());
+    document.getElementById('sel-webgl').addEventListener('change', () => this.saveSpoofSettings());
+    document.getElementById('sel-resolution').addEventListener('change', () => this.saveSpoofSettings());
+    document.getElementById('btn-sync-ip').addEventListener('click', () => this.syncTimezoneToIp());
   },
 
   /**
@@ -134,6 +143,89 @@ const Popup = {
       this.baselineData = this.currentData;
       this.updateUI();
       alert('基準值設定成功！');
+    }
+  },
+
+  /**
+   * 載入偽裝設定
+   */
+  async loadSpoofSettings() {
+    const result = await chrome.storage.local.get(['spoofSettings']);
+    const settings = result.spoofSettings || {
+      enabled: false,
+      language: 'en-US',
+      platform: 'Win32',
+      webglRenderer: 'Intel Iris OpenGL Engine',
+      resolution: '1920,1080,1',
+      timezone: ''
+    };
+
+    document.getElementById('chk-spoof-enabled').checked = settings.enabled;
+    document.getElementById('sel-lang').value = settings.language;
+    document.getElementById('sel-platform').value = settings.platform;
+    document.getElementById('sel-webgl').value = settings.webglRenderer;
+    document.getElementById('sel-resolution').value = settings.resolution;
+    this.spoofTimezone = settings.timezone;
+  },
+
+  /**
+   * 儲存偽裝設定
+   */
+  async saveSpoofSettings() {
+    const resString = document.getElementById('sel-resolution').value;
+    const [w, h, dpr] = resString.split(',');
+    
+    const settings = {
+      enabled: document.getElementById('chk-spoof-enabled').checked,
+      language: document.getElementById('sel-lang').value,
+      platform: document.getElementById('sel-platform').value,
+      webglRenderer: document.getElementById('sel-webgl').value,
+      webglVendor: this.getVendorFromRenderer(document.getElementById('sel-webgl').value),
+      screenWidth: parseInt(w),
+      screenHeight: parseInt(h),
+      devicePixelRatio: parseFloat(dpr),
+      timezone: this.spoofTimezone || ''
+    };
+
+    await chrome.storage.local.set({ spoofSettings: settings });
+    
+    // 如果開啟偽裝，提醒使用者重新載入網頁
+    if (settings.enabled) {
+      console.log('Spoofing settings saved and enabled.');
+    }
+  },
+
+  getVendorFromRenderer(renderer) {
+    if (renderer.includes('Intel')) return 'Google Inc. (Intel)';
+    if (renderer.includes('NVIDIA')) return 'Google Inc. (NVIDIA)';
+    if (renderer.includes('Apple')) return 'Apple Inc.';
+    return 'Unknown';
+  },
+
+  /**
+   * 同步時區至 IP 所在位置
+   */
+  async syncTimezoneToIp() {
+    if (!this.currentData || this.currentData.status === 'error') {
+      alert('無法取得 IP 資訊，請先重新檢查。');
+      return;
+    }
+
+    // 從 ipinfo 取得時區 (ipService 已經在 getCurrentIpInfo 抓過但 popup.js 只存了精簡版)
+    // 為了精確，我們從 currentData 拿到 IP 後再抓一次或修改 ipService
+    // 簡單做法：ipService.js 其實有回傳廣義的 geoData
+    // 重新抓取一次詳細 IP 資訊以獲取時區
+    try {
+      const geoData = await IpService.fetchWithTimeout(`https://ipinfo.io/${this.currentData.publicIp}/json`);
+      if (geoData.timezone) {
+        this.spoofTimezone = geoData.timezone;
+        await this.saveSpoofSettings();
+        alert(`已同步時區為：${geoData.timezone}\n請重新載入網頁以生效。`);
+      } else {
+        alert('此 IP 無法提供時區資訊。');
+      }
+    } catch (e) {
+      alert('同步失敗：' + e.message);
     }
   }
 };

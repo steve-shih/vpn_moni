@@ -16,8 +16,19 @@
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["bridge.js"],
+      "run_at": "document_start"
+    }
   ],
   "host_permissions": [
     "https://api.ipify.org/*",

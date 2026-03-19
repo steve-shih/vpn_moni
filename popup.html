@@ -75,6 +75,59 @@
       </div>
     </main>
 
+    <div class="section-title">環境偽裝設定 (Spoofing)</div>
+    <div class="spoof-settings">
+      <div class="form-row">
+        <label class="switch-label">
+          <span>開啟環境偽裝</span>
+          <input type="checkbox" id="chk-spoof-enabled">
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-item">
+          <label>語言</label>
+          <select id="sel-lang">
+            <option value="en-US">English (US)</option>
+            <option value="zh-TW">繁體中文 (台灣)</option>
+            <option value="ja-JP">日本語 (日本)</option>
+            <option value="ko-KR">한국어 (한국)</option>
+            <option value="tr-TR">Türkçe (Türkiye)</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>平台 (OS)</label>
+          <select id="sel-platform">
+            <option value="Win32">Windows</option>
+            <option value="MacIntel">macOS</option>
+            <option value="Linux x86_64">Linux</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>WebGL 渲染器</label>
+          <select id="sel-webgl">
+            <option value="Intel Iris OpenGL Engine">Intel Iris</option>
+            <option value="NVIDIA GeForce RTX 3080">NVIDIA RTX 3080</option>
+            <option value="Apple M2">Apple M2</option>
+            <option value="Apple M1">Apple M1</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>解析度</label>
+          <select id="sel-resolution">
+            <option value="1920,1080,1">1920x1080 (1x)</option>
+            <option value="1512,982,2">1512x982 (2x)</option>
+            <option value="1440,900,1">1440x900 (1x)</option>
+            <option value="2560,1440,1">2560x1440 (1x)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row mt-10">
+        <button id="btn-sync-ip" class="btn secondary mini-btn">同步至 IP 所在時區</button>
+      </div>
+    </div>
+
     <footer>
       <div class="timestamp">
         檢查時間：<span id="check-time">-</span>

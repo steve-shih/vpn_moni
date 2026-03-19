@@ -112,6 +112,66 @@ header h1 {
   color: #ef6c00;
 }
 
+/* Spoof Settings */
+.spoof-settings {
+  background: #f8fafc;
+  border: 1px dashed var(--border-color);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.switch-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.switch-label input {
+  width: 18px;
+  height: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-item label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.form-item select {
+  padding: 4px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.mt-10 { margin-top: 10px; }
+
+.mini-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 /* Footer 單純化 */
 footer {
   margin-top: 20px;
