@@ -1,10 +1,15 @@
 /**
- * Bridge script (Runs in world: "ISOLATED")
- * 負責將 storage 中的資料傳遞給 MAIN world 的 inject.js
+ * Bridge Script (ISOLATED world)
+ * 傳遞資料的最前線
  */
 (async function() {
-  const settings = await chrome.storage.local.get(['spoofSettings']);
-  if (settings.spoofSettings && settings.spoofSettings.enabled) {
-    document.documentElement.dataset.vpnSpoof = JSON.stringify(settings.spoofSettings);
+  try {
+    const result = await chrome.storage.local.get(['spoofSettings']);
+    if (result.spoofSettings && result.spoofSettings.enabled) {
+      // 寫入 dataset 使 MAIN world 的腳本可見
+      document.documentElement.dataset.vpnSpoof = JSON.stringify(result.spoofSettings);
+    }
+  } catch (e) {
+    console.error('Bridge failed:', e);
   }
 })();

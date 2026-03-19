@@ -1,89 +1,85 @@
 /**
- * Inject Script (Runs in world: "MAIN")
- * 負責覆蓋原生 API 實現環境偽裝
+ * Inject Script (MAIN world)
+ * 核心：強力攔截機制
  */
-(async function() {
-  // 從儲存中取得設定值
-  // 註：在 MAIN world 無法直接存取 chrome.storage，
-  // 但我們可以在註冊時動態生成腳本，或者乾淨做法是用「立即執行的匿名函式」傳入資料。
-  // 由於 registerContentScripts 不好傳參，更好的做法是 inject.js 從頁面中的某個地方讀取，
-  // 或者最簡單的做法是 background.js 讀取後動態組合字串，
-  // 但為了維護性，目前我們在 inject.js 執行時去 query 一個由 content script 寫入的 DOM。
-  // 不，最穩定且 MV3 推薦的做法是腳本執行時先獲取一次資料。
-  // 在 MAIN world 中，我們需要一種方式獲取 storage 資料。
-  
-  // 方案：background.js 在注入前，先在 storageChange 時更新一組「全域內容腳本參數」。
-  // 但 registerContentScripts 是靜態檔案。
-  // 另一個方案：由一個普通 content script (ISOLATED) 將資料放在 DOM 屬性，inject.js (MAIN) 去讀。
+(function() {
+  // 立即輸出 Log，讓使用者在 console 看到腳本有執行
+  console.log('%c[VPN Spoofer] 🛡️ 注入成功，正在等待環境參數...', 'color: #2563eb; font-weight: bold;');
 
-  // 為了示範簡單且穩定，我們假設背景已經將參數序列化在 inject.js 的字串中 (這需要動態注入)。
-  // 但 register 只能用實體檔案。
-  // 故：我們使用 document.documentElement.dataset 作為橋接。
+  let spoofed = false;
 
-  const spoofData = document.documentElement.dataset.vpnSpoof;
-  if (!spoofData) return;
+  function applySpoof(data) {
+    if (spoofed) return;
+    try {
+      const settings = JSON.parse(data);
+      if (!settings.enabled) return;
 
-  try {
-    const settings = JSON.parse(spoofData);
-    const { timezone, language, platform, screenWidth, screenHeight, devicePixelRatio, webglVendor, webglRenderer } = settings;
+      console.log('[VPN Spoofer] ⚙️ 套用設定:', settings);
 
-    // 1. 偽裝時區
-    if (timezone) {
-      const originalResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
-      Intl.DateTimeFormat.prototype.resolvedOptions = function() {
-        const options = originalResolvedOptions.apply(this, arguments);
-        options.timeZone = timezone;
-        return options;
-      };
-    }
-
-    // 2. 偽裝語言
-    if (language) {
-      Object.defineProperty(navigator, 'language', { get: () => language });
-      Object.defineProperty(navigator, 'languages', { get: () => [language, language.split('-')[0]] });
-    }
-
-    // 3. 偽裝平台
-    if (platform) {
-      Object.defineProperty(navigator, 'platform', { get: () => platform });
-    }
-
-    // 4. 偽裝解析度
-    if (screenWidth && screenHeight) {
-      Object.defineProperty(window.screen, 'width', { get: () => screenWidth });
-      Object.defineProperty(window.screen, 'height', { get: () => screenHeight });
-      Object.defineProperty(window.screen, 'availWidth', { get: () => screenWidth });
-      Object.defineProperty(window.screen, 'availHeight', { get: () => screenHeight });
-      Object.defineProperty(window, 'innerWidth', { get: () => screenWidth });
-      Object.defineProperty(window, 'innerHeight', { get: () => screenHeight });
-    }
-    if (devicePixelRatio) {
-      Object.defineProperty(window, 'devicePixelRatio', { get: () => devicePixelRatio });
-    }
-
-    // 5. 偽裝 WebGL
-    if (webglVendor || webglRenderer) {
-      const getParameterProxy = function(originalGetParameter) {
-        return function(parameter) {
-          const debugInfo = this.getExtension('WEBGL_debug_renderer_info');
-          if (debugInfo) {
-            if (parameter === debugInfo.UNMASKED_VENDOR_WEBGL && webglVendor) return webglVendor;
-            if (parameter === debugInfo.UNMASKED_RENDERER_WEBGL && webglRenderer) return webglRenderer;
-          }
-          return originalGetParameter.apply(this, arguments);
+      // 1. 時區
+      if (settings.timezone) {
+        const originalResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
+        Intl.DateTimeFormat.prototype.resolvedOptions = function() {
+          const options = originalResolvedOptions.apply(this, arguments);
+          options.timeZone = settings.timezone;
+          return options;
         };
-      };
+      }
 
-      if (window.WebGLRenderingContext) {
-        WebGLRenderingContext.prototype.getParameter = getParameterProxy(WebGLRenderingContext.prototype.getParameter);
+      // 2. 語言
+      if (settings.language) {
+        Object.defineProperty(navigator, 'language', { get: () => settings.language, configurable: true });
+        Object.defineProperty(navigator, 'languages', { get: () => [settings.language, settings.language.split('-')[0]], configurable: true });
       }
-      if (window.WebGL2RenderingContext) {
-        WebGL2RenderingContext.prototype.getParameter = getParameterProxy(WebGL2RenderingContext.prototype.getParameter);
+
+      // 3. 平台
+      if (settings.platform) {
+        Object.defineProperty(navigator, 'platform', { get: () => settings.platform, configurable: true });
       }
+
+      // 4. 解析度
+      if (settings.screenWidth) {
+        Object.defineProperty(Screen.prototype, 'width', { get: () => settings.screenWidth, configurable: true });
+        Object.defineProperty(Screen.prototype, 'height', { get: () => settings.screenHeight, configurable: true });
+        Object.defineProperty(Screen.prototype, 'availWidth', { get: () => settings.screenWidth, configurable: true });
+        Object.defineProperty(Screen.prototype, 'availHeight', { get: () => settings.screenHeight, configurable: true });
+        Object.defineProperty(window, 'innerWidth', { get: () => settings.screenWidth, configurable: true });
+        Object.defineProperty(window, 'innerHeight', { get: () => settings.screenHeight, configurable: true });
+      }
+
+      // 5. WebGL
+      if (settings.webglVendor || settings.webglRenderer) {
+        const getParameterProxy = (proto) => {
+          const original = proto.getParameter;
+          proto.getParameter = function(param) {
+            const debugInfo = this.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+              if (param === debugInfo.UNMASKED_VENDOR_WEBGL && settings.webglVendor) return settings.webglVendor;
+              if (param === debugInfo.UNMASKED_RENDERER_WEBGL && settings.webglRenderer) return settings.webglRenderer;
+            }
+            return original.apply(this, arguments);
+          };
+        };
+        if (window.WebGLRenderingContext) getParameterProxy(WebGLRenderingContext.prototype);
+        if (window.WebGL2RenderingContext) getParameterProxy(WebGL2RenderingContext.prototype);
+      }
+
+      spoofed = true;
+      console.log('%c[VPN Spoofer] ✅ 環境校正完成！', 'color: #059669; font-weight: bold;');
+    } catch (e) {
+      console.error('[VPN Spoofer] ❌ 套用失敗:', e);
     }
-
-    console.log('VPN Diff Checker: Environment Spoofed successfully.');
-  } catch (e) {
-    console.error('VPN Diff Checker Spoof failed:', e);
   }
+
+  // 持續檢查是否有資料傳入 (透過 dataset)
+  const timer = setInterval(() => {
+    const data = document.documentElement.dataset.vpnSpoof;
+    if (data) {
+      applySpoof(data);
+      clearInterval(timer);
+    }
+  }, 10);
+
+  // 1 秒後如果還是沒資料就放棄
+  setTimeout(() => clearInterval(timer), 1000);
 })();
