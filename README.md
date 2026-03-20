@@ -63,39 +63,4 @@ chrome://extensions
 Enable Developer Mode.
 
 Click "Load unpacked" and select the project folder.
-┌──────────────────────────────┐
-│        Chrome Extension      │
-│ (Popup + Background Script)  │
-└─────────────┬────────────────┘
-              │
-              ▼
-     ┌──────────────────────┐
-     │   VPN Checker Layer   │
-     │──────────────────────│
-     │ - Fetch Public IP     │
-     │ - Compare Baseline    │
-     │ - Detect Mismatch     │
-     └─────────────┬────────┘
-                   │
-                   ▼
-     ┌──────────────────────┐
-     │ Device Spoof Engine   │
-     │──────────────────────│
-     │ - Modify Headers      │
-     │ - Inject Scripts      │
-     │ - Override APIs       │
-     └─────────────┬────────┘
-                   │
-                   ▼
-     ┌────────────────────────────┐
-     │    Browser Runtime Layer   │
-     │────────────────────────────│
-     │ navigator / WebGL / screen │
-     │ timezone / language        │
-     └─────────────┬──────────────┘
-                   │
-                   ▼
-     ┌────────────────────────────┐
-     │    Target Website / Test   │
-     │ (e.g. BrowserLeaks, etc.)  │
-     └────────────────────────────┘
+
